@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: weather-pwa
+    restart: unless-stopped
+    
+    # On expose le port 80 pour que Nginx Proxy Manager puisse le voir
+    # (Pas besoin de 'ports' mappé sur l'hôte si tout passe par NPM)
+    expose:
+      - "80"
+      
+    # Variables d'environnement (Clé API WorldTides)
+    env_file:
+      - .env
+      
+    # Connexion aux réseaux
+    networks:
+      - default    # Réseau interne pour ce projet
+      - proxy_net  # Réseau externe pour NPM
+
+# Déclaration des réseaux
+networks:
+  proxy_net:
+    external: true
+    name: proxy_net

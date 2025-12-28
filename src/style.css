@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-deep-blue text-white antialiased overflow-x-hidden;
+  /* Pour éviter le 'pull-to-refresh' natif qui casse l'effet app */
+  overscroll-behavior-y: none;
+}
+
+/* Scrollbar invisible pour un look plus "app" */
+::-webkit-scrollbar {
+  display: none;
+}
