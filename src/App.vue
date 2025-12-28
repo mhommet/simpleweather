@@ -77,10 +77,32 @@ const searchCity = async () => {
 }
 
 const useMyLocation = () => {
+  if (!navigator.geolocation) {
+    error.value = "GPS non disponible sur cet appareil";
+    return;
+  }
+
   loading.value = true;
   navigator.geolocation.getCurrentPosition(
     (pos) => fetchData(pos.coords.latitude, pos.coords.longitude, "Ma Position"),
-    (err) => { error.value = "GPS refusé"; loading.value = false; }
+    (err) => { 
+      console.error('Erreur géolocalisation:', err);
+      if (err.code === 1) {
+        error.value = "Autorisez la géolocalisation dans les réglages du navigateur";
+      } else if (err.code === 2) {
+        error.value = "Position indisponible";
+      } else if (err.code === 3) {
+        error.value = "Délai de géolocalisation dépassé";
+      } else {
+        error.value = "Erreur GPS";
+      }
+      loading.value = false;
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
   )
 }
 
