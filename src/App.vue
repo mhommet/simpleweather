@@ -59,22 +59,29 @@ const fetchTides = async (lat, lon) => {
 
 // --- API ---
 const searchCity = async () => {
-  if (!searchQuery.value) return;
-  loading.value = true;
+  const q = (searchQuery.value ?? '').trim() // retire espaces début/fin
+  if (!q) return
+
+  loading.value = true
   try {
-    const geoRes = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${searchQuery.value}&count=1&language=fr&format=json`);
+    const geoRes = await axios.get(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&language=fr&format=json`
+    )
+
     if (geoRes.data.results && geoRes.data.results.length > 0) {
-      const p = geoRes.data.results[0];
-      await fetchData(p.latitude, p.longitude, p.name);
-    } else { 
-      error.value = "Ville introuvable"; 
-      loading.value = false; 
+      const p = geoRes.data.results[0]
+      searchQuery.value = q // optionnel: remet la valeur propre dans l'input
+      await fetchData(p.latitude, p.longitude, (p.name ?? q).trim())
+    } else {
+      error.value = "Ville introuvable"
+      loading.value = false
     }
-  } catch (e) { 
-    error.value = "Erreur recherche"; 
-    loading.value = false; 
+  } catch (e) {
+    error.value = "Erreur recherche"
+    loading.value = false
   }
 }
+
 
 const useMyLocation = () => {
   if (!navigator.geolocation) {
@@ -110,7 +117,7 @@ const fetchData = async (lat, lon, name) => {
   try {
     loading.value = true;
     error.value = null;
-    locationName.value = name || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+    locationName.value = (name || `${lat.toFixed(2)}, ${lon.toFixed(2)}`).trim()
 
     // 1. Météo
     const weatherRes = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`)
@@ -155,7 +162,7 @@ const todayDate = computed(() => format(new Date(), 'EEEE d MMMM', { locale: fr 
     <div class="w-full max-w-md mb-6 flex gap-2 z-50">
       <div class="relative flex-1">
         <input 
-          v-model="searchQuery" 
+          v-model.trim="searchQuery" 
           @keyup.enter="searchCity" 
           type="text" 
           placeholder="Ville..." 
